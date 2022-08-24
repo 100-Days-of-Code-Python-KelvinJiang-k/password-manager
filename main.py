@@ -4,6 +4,24 @@ from password_generator import PasswordGenerator
 import pyperclip
 import json
 
+
+def get_website_data():
+    # error when data.json does not exist or is empty
+    try:
+        with open("data.json") as data_file:
+            data = json.load(data_file)
+    except (json.decoder.JSONDecodeError, FileNotFoundError):
+        messagebox.showinfo(title="Error", message="Email and password data does not exist")
+    else:
+        website = website_entry.get()
+        if website in data:
+            email = data[website]["email"]
+            password = data[website]["password"]
+            messagebox.showinfo(title=website, message=f"Email: {email}\nPassword: {password}")
+        else:
+            messagebox.showinfo(title=website, message=f"Email and password data does not exist.")
+
+
 # ---------------------------- PASSWORD GENERATOR ------------------------------- #
 password_generator = PasswordGenerator()
 
@@ -49,10 +67,10 @@ def save():
                 json.dump(new_data, data_file, indent=4)
         else:
             data_dict.update(new_data)
-
             with open("data.json", "w") as data_file:
                 json.dump(data_dict, data_file, indent=4)
-            clear()
+
+        clear()
 
 
 # ---------------------------- UI SETUP ------------------------------- #
@@ -74,8 +92,8 @@ password_label = Label(text="Password:")
 password_label.grid(column=0, row=3)
 
 # Entries
-website_entry = Entry(width=36)
-website_entry.grid(column=1, row=1, columnspan=2)
+website_entry = Entry(width=21)
+website_entry.grid(column=1, row=1)
 website_entry.focus()
 email_entry = Entry(width=36)
 email_entry.grid(column=1, row=2, columnspan=2)
@@ -88,6 +106,8 @@ password_button = Button(text="Generate Password", command=generate_password)
 password_button.grid(column=2, row=3)
 add_data_button = Button(text="Add", width=36, command=save)
 add_data_button.grid(column=1, row=4, columnspan=2)
+search_button = Button(text="Search", width=16, command=get_website_data)
+search_button.grid(column=2, row=1)
 
 
 window.mainloop()
