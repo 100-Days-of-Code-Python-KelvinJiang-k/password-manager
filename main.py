@@ -2,6 +2,7 @@ from tkinter import *
 from tkinter import messagebox
 from password_generator import PasswordGenerator
 import pyperclip
+import json
 
 # ---------------------------- PASSWORD GENERATOR ------------------------------- #
 password_generator = PasswordGenerator()
@@ -13,6 +14,7 @@ def generate_password():
     password_entry.delete(0, END)
     password_entry.insert(END, password)
 
+
 # ---------------------------- SAVE PASSWORD ------------------------------- #
 def clear():
     website_entry.delete(0, END)
@@ -23,18 +25,34 @@ def save():
     website = website_entry.get()
     password = password_entry.get()
     email = email_entry.get()
+    new_data = {
+        website: {
+            "email": email,
+            "password": password,
+        }
+    }
 
     if len(website) == 0 or len(password) == 0 or len(email) == 0:
         messagebox.showerror(title="Error", message="You have invalid inputs")
         return
 
-    is_ok = messagebox.askokcancel(title=website, message=f"These are the details entered:\n"
-                                                          f"Email: {email}\nPassword: {password}"
-                                                          f"\nDo you wish to save?")
-    if is_ok:
-        with open("passwords.txt", "a") as file:
-            file.write(f"{website} | {email} | {password}\n")
-        clear()
+    confirmation = messagebox.askokcancel(title=website, message=f"These are the details entered:\n"
+                                                                 f"Email: {email}\nPassword: {password}"
+                                                                 f"\nDo you wish to save?")
+    if confirmation:
+        # error occurs when data.json doesn't exist or is empty
+        try:
+            with open("data.json", "r") as data_file:
+                data_dict = json.load(data_file)
+        except (json.decoder.JSONDecodeError, FileNotFoundError):
+            with open("data.json", "w") as data_file:
+                json.dump(new_data, data_file, indent=4)
+        else:
+            data_dict.update(new_data)
+
+            with open("data.json", "w") as data_file:
+                json.dump(data_dict, data_file, indent=4)
+            clear()
 
 
 # ---------------------------- UI SETUP ------------------------------- #
@@ -70,5 +88,6 @@ password_button = Button(text="Generate Password", command=generate_password)
 password_button.grid(column=2, row=3)
 add_data_button = Button(text="Add", width=36, command=save)
 add_data_button.grid(column=1, row=4, columnspan=2)
+
 
 window.mainloop()
